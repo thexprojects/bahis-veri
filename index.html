@@ -20,6 +20,12 @@ h1 {
   margin-bottom: 16px;
 }
 
+/* ORTALANMIŞ ANA CONTAINER (masaüstü için daraltma) */
+.page-container {
+  max-width: 960px;
+  margin: 0 auto;
+}
+
 /* TARİH */
 .date-filters {
   display: flex;
@@ -114,29 +120,69 @@ h1 {
   width: 100%;
   border: none;
   cursor: pointer;
+  font-size: 14px;
+}
+
+/* MASAÜSTÜ DÜZENİ: satır içi yapı (maç – istatistik – bahis türü – CTA) */
+@media (min-width: 900px) {
+  body {
+    padding: 24px 0;
+  }
+
+  .stat-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .teams {
+    flex: 2;
+  }
+
+  .detail {
+    flex: 3;
+    margin: 0;
+  }
+
+  .highlight {
+    flex: 1.5;
+    margin: 0;
+    text-align: center;
+  }
+
+  .btn {
+    flex: 1;
+    width: auto;
+    padding: 8px 14px;
+    white-space: nowrap;
+    font-weight: 600;
+  }
 }
 </style>
 </head>
 
 <body>
+<div class="page-container">
 
-<h1>Günlük Maç İstatistikleri</h1>
+  <h1>Günlük Maç İstatistikleri</h1>
 
-<!-- TARİH -->
-<div class="date-filters">
-  <div class="date-pill active" data-day="bugun">Bugün</div>
-  <div class="date-pill" data-day="20">20 Kasım</div>
-  <div class="date-pill" data-day="21">21 Kasım</div>
+  <!-- TARİH -->
+  <div class="date-filters">
+    <div class="date-pill active" data-day="bugun">Bugün</div>
+    <div class="date-pill" data-day="20">20 Kasım</div>
+    <div class="date-pill" data-day="21">21 Kasım</div>
+  </div>
+
+  <!-- SPOR -->
+  <div class="sport-filters">
+    <span class="sport-pill active" data-sport="futbol">⚽️</span>
+    <span class="sport-pill" data-sport="basketbol">🏀</span>
+    <span class="sport-pill" data-sport="tenis">🎾</span>
+  </div>
+
+  <div id="categories"></div>
+
 </div>
-
-<!-- SPOR -->
-<div class="sport-filters">
-  <span class="sport-pill active" data-sport="futbol">⚽️</span>
-  <span class="sport-pill" data-sport="basketbol">🏀</span>
-  <span class="sport-pill" data-sport="tenis">🎾</span>
-</div>
-
-<div id="categories"></div>
 
 <script>
 /* ============================
@@ -149,66 +195,66 @@ const statsDB = {
   bugun: {
     futbol: {
       "🆚 Maç Sonucu": [
-        { flag:"🇹🇷", teams:"Galatasaray vs Fenerbahçe", detail:"6/7 G.Saray", highlight:"Galatasaray Kazanır" },
-        { flag:"🇬🇧", teams:"Liverpool vs Chelsea", detail:"LFC formda", highlight:"Liverpool Kazanır" },
-        { flag:"🇪🇸", teams:"Barcelona vs Sevilla", detail:"Barça yenilmez", highlight:"Barcelona Kazanır" },
-        { flag:"🇮🇹", teams:"Juventus vs Milan", detail:"Juve iç saha güçlü", highlight:"Juventus Kaybetmez" },
-        { flag:"🇩🇪", teams:"Dortmund vs Leverkusen", detail:"4/5 Dortmund", highlight:"Dortmund Kazanır" }
+        { flag:"🇹🇷", teams:"Galatasaray vs Fenerbahçe", detail:"Galatasaray, ligde oynadığı son 7 maçın 6'sını kazandı.", highlight:"Galatasaray Kazanır" },
+        { flag:"🏴", teams:"Liverpool vs Chelsea", detail:"Liverpool, iç sahada oynadığı son 10 lig maçının 9'unda puan kaybetmedi.", highlight:"Liverpool Kazanır" },
+        { flag:"🇪🇸", teams:"Barcelona vs Sevilla", detail:"Barcelona, Sevilla ile oynadığı son 8 lig maçını kaybetmedi.", highlight:"Barcelona Kazanır" },
+        { flag:"🇮🇹", teams:"Juventus vs Milan", detail:"Juventus, iç sahada oynadığı son 10 lig maçının 8'ini kazandı.", highlight:"Juventus Kaybetmez" },
+        { flag:"🇩🇪", teams:"Dortmund vs Leverkusen", detail:"Dortmund, ligde oynadığı son 6 maçın 5'ini kazandı.", highlight:"Dortmund Kazanır" }
       ],
       "⚽️ Toplam Gol": [
-        { flag:"🇬🇧", teams:"City vs Arsenal", detail:"4/5 üst", highlight:"2.5 Üst" },
-        { flag:"🇫🇷", teams:"PSG vs Lyon", detail:"PSG golcü", highlight:"3.5 Üst" },
-        { flag:"🇪🇸", teams:"Real vs Villarreal", detail:"4/5 üst", highlight:"2.5 Üst" },
-        { flag:"🇮🇹", teams:"Inter vs Napoli", detail:"Inter formda", highlight:"1.5 Üst" },
-        { flag:"🇬🇧", teams:"Tottenham vs Brighton", detail:"Brighton üst uzmanı", highlight:"2.5 Üst" }
+        { flag:"🏴", teams:"Manchester City vs Arsenal", detail:"Manchester City'nin ligde oynadığı son 7 maçın 6'sında 3 ve üzeri gol oldu.", highlight:"2.5 Üst" },
+        { flag:"🇫🇷", teams:"PSG vs Lyon", detail:"PSG'nin iç sahada oynadığı son 5 lig maçının tamamında en az 4 gol çıktı.", highlight:"3.5 Üst" },
+        { flag:"🇪🇸", teams:"Real Madrid vs Villarreal", detail:"Real Madrid'in ligde oynadığı son 8 maçın 6'sında 3 ve üzeri gol kaydedildi.", highlight:"2.5 Üst" },
+        { flag:"🇮🇹", teams:"Inter vs Napoli", detail:"Inter'in son 10 lig maçının 8'inde en az 2 gol izledik.", highlight:"1.5 Üst" },
+        { flag:"🏴", teams:"Tottenham vs Brighton", detail:"Brighton'ın son 9 lig maçının 7'sinde 3 ve üzeri gol çıktı.", highlight:"2.5 Üst" }
       ],
       "🥅 Karşılıklı Gol": [
-        { flag:"🇹🇷", teams:"Adana DS vs Başakşehir", detail:"KG Var", highlight:"KG Var" },
-        { flag:"🇩🇪", teams:"Leipzig vs Frankfurt", detail:"KG Var", highlight:"KG Var" },
-        { flag:"🇮🇹", teams:"Atalanta vs Roma", detail:"KG Var", highlight:"KG Var" },
-        { flag:"🇪🇸", teams:"Betis vs Getafe", detail:"KG Var", highlight:"KG Var" },
-        { flag:"🇬🇧", teams:"Newcastle vs West Ham", detail:"KG Var", highlight:"KG Var" }
+        { flag:"🇹🇷", teams:"Adana Demirspor vs Başakşehir", detail:"Adana Demirspor'un son 6 iç saha maçının 5'inde iki takım da gol buldu.", highlight:"KG Var" },
+        { flag:"🇩🇪", teams:"Leipzig vs Frankfurt", detail:"Leipzig'in ligde oynadığı son 7 maçın 5'inde karşılıklı gol oldu.", highlight:"KG Var" },
+        { flag:"🇮🇹", teams:"Atalanta vs Roma", detail:"Atalanta ile Roma'nın karşılaştığı son 6 maçın 4'ünde iki taraf da skor üretti.", highlight:"KG Var" },
+        { flag:"🇪🇸", teams:"Betis vs Getafe", detail:"Betis'in iç sahada oynadığı son 7 maçın 5'inde karşılıklı gol izledik.", highlight:"KG Var" },
+        { flag:"🏴", teams:"Newcastle vs West Ham", detail:"Newcastle'ın son 8 lig maçının 6'sında her iki takım da fileleri havalandırdı.", highlight:"KG Var" }
       ],
       "🚩 Korner": [
-        { flag:"🇬🇧", teams:"Man Utd vs Brentford", detail:"10+ korner", highlight:"9.5 Üst" },
-        { flag:"🇹🇷", teams:"Beşiktaş vs Konya", detail:"9 korner", highlight:"8.5 Üst" },
-        { flag:"🇮🇹", teams:"Lazio vs Fiorentina", detail:"10+", highlight:"9.5 Üst" },
-        { flag:"🇪🇸", teams:"Valencia vs Osasuna", detail:"10 ort.", highlight:"9.5 Üst" },
-        { flag:"🇩🇪", teams:"Bayern vs Stuttgart", detail:"11 ort.", highlight:"10.5 Üst" }
+        { flag:"🏴", teams:"Manchester United vs Brentford", detail:"Manchester United'ın ligde oynadığı son 6 maçın 5'inde en az 10 korner kullanıldı.", highlight:"9.5 Üst" },
+        { flag:"🇹🇷", teams:"Beşiktaş vs Konyaspor", detail:"Beşiktaş'ın iç sahadaki son 7 lig maçının 5'inde 9 ve üzeri korner çıktı.", highlight:"8.5 Üst" },
+        { flag:"🇮🇹", teams:"Lazio vs Fiorentina", detail:"Lazio'nun ligde oynadığı son 8 maçın 6'sında 10 ve üzeri korner kullanıldı.", highlight:"9.5 Üst" },
+        { flag:"🇪🇸", teams:"Valencia vs Osasuna", detail:"Valencia'nın son 7 lig maçının 5'inde çift haneli korner sayısına ulaşıldı.", highlight:"9.5 Üst" },
+        { flag:"🇩🇪", teams:"Bayern Münih vs Stuttgart", detail:"Bayern'in iç sahadaki son 6 maçının 4'ünde 11 ve üzeri korner kullanıldı.", highlight:"10.5 Üst" }
       ],
       "🟨 Toplam Kart": [
-        { flag:"🇹🇷", teams:"Trabzon vs Ankaragücü", detail:"5 kart", highlight:"4.5 Üst" },
-        { flag:"🇪🇸", teams:"Atletico vs Bilbao", detail:"6 kart", highlight:"5.5 Üst" },
-        { flag:"🇮🇹", teams:"Napoli vs Torino", detail:"5 kart", highlight:"4.5 Üst" },
-        { flag:"🇫🇷", teams:"Lille vs Nice", detail:"sert maç", highlight:"4.5 Üst" },
-        { flag:"🇬🇧", teams:"Everton vs Wolves", detail:"4.8 kart", highlight:"3.5 Üst" }
+        { flag:"🇹🇷", teams:"Trabzonspor vs Ankaragücü", detail:"Trabzonspor'un iç sahada oynadığı son 7 lig maçının 5'inde en az 5 kart çıktı.", highlight:"4.5 Üst" },
+        { flag:"🇪🇸", teams:"Atletico Madrid vs Athletic Bilbao", detail:"Atletico'nun son 6 lig maçının 4'ünde 6 ve üzeri kart gösterildi.", highlight:"5.5 Üst" },
+        { flag:"🇮🇹", teams:"Napoli vs Torino", detail:"Napoli'nin iç sahadaki son 8 lig maçının 5'inde en az 5 kart çıktı.", highlight:"4.5 Üst" },
+        { flag:"🇫🇷", teams:"Lille vs Nice", detail:"Lille'in ligde oynadığı son 7 maçın 5'inde 5 ve üzeri kart izlendi.", highlight:"4.5 Üst" },
+        { flag:"🏴", teams:"Everton vs Wolves", detail:"Everton'un son 10 lig maçının 7'sinde 4 ve üzeri kart gösterildi.", highlight:"3.5 Üst" }
       ]
     },
 
     basketbol: {
       "🏀 Toplam Sayı": [
-        { flag:"🇺🇸", teams:"Lakers vs Suns", detail:"230+ ort", highlight:"230.5 Üst" },
-        { flag:"🇺🇸", teams:"Celtics vs Heat", detail:"yüksek tempo", highlight:"220.5 Üst" },
-        { flag:"🇹🇷", teams:"Fenerbahçe vs Efes", detail:"160+ seri", highlight:"162.5 Üst" },
-        { flag:"🇪🇸", teams:"Real vs Barcelona", detail:"166 ort", highlight:"165.5 Üst" },
-        { flag:"🇷🇸", teams:"Partizan vs Monaco", detail:"hızlı maç", highlight:"174.5 Üst" }
+        { flag:"🇺🇸", teams:"Los Angeles Lakers vs Phoenix Suns", detail:"Lakers'ın oynadığı son 9 maçın 6'sında toplam sayı 230 barajını aştı.", highlight:"230.5 Üst" },
+        { flag:"🇺🇸", teams:"Boston Celtics vs Miami Heat", detail:"Celtics'in son 8 maçının 5'inde 220 ve üzeri sayı kaydedildi.", highlight:"220.5 Üst" },
+        { flag:"🇹🇷", teams:"Fenerbahçe vs Anadolu Efes", detail:"Fenerbahçe ile Efes'in karşılaştığı son 7 maçın 5'inde 160 ve üzeri sayı çıktı.", highlight:"162.5 Üst" },
+        { flag:"🇪🇸", teams:"Real Madrid vs Barcelona", detail:"Real Madrid'in son 10 maçının 7'sinde toplam sayı 165 barajının üzerine çıktı.", highlight:"165.5 Üst" },
+        { flag:"🇷🇸", teams:"Partizan vs Monaco", detail:"Partizan'ın Euroligue'de oynadığı son 6 maçın 4'ünde 175'e yakın yüksek skorlar izlendi.", highlight:"174.5 Üst" }
       ]
     },
 
     tenis: {
       "🎾 Maç Sonucu": [
-        { flag:"🇷🇸", teams:"Djokovic vs Ruud", detail:"Djokovic formda", highlight:"Djokovic Kazanır" },
-        { flag:"🇪🇸", teams:"Alcaraz vs Nadal", detail:"Alcaraz yükselişte", highlight:"Alcaraz" },
-        { flag:"🇮🇹", teams:"Sinner vs Berrettini", detail:"Sinner iyi zemin", highlight:"Sinner" },
-        { flag:"🇦🇷", teams:"Schwartzman vs Cerundolo", detail:"Toprakçı", highlight:"Schwartzman" },
-        { flag:"🇩🇪", teams:"Zverev vs Struff", detail:"4/5 Zverev", highlight:"Zverev" }
+        { flag:"🇷🇸", teams:"Novak Djokovic vs Casper Ruud", detail:"Djokovic, oynadığı son 23 maçı da kazanarak inanılmaz bir seri yakaladı.", highlight:"Djokovic Kazanır" },
+        { flag:"🇪🇸", teams:"Carlos Alcaraz vs Rafael Nadal", detail:"Alcaraz, son 10 maçının 8'ini kazanarak formunu sürdürdü.", highlight:"Alcaraz Kazanır" },
+        { flag:"🇮🇹", teams:"Jannik Sinner vs Matteo Berrettini", detail:"Sinner, sert zeminde oynadığı son 12 maçın 9'unda galip geldi.", highlight:"Sinner Kazanır" },
+        { flag:"🇦🇷", teams:"Diego Schwartzman vs Francisco Cerundolo", detail:"Schwartzman, toprak kortta oynadığı son 10 maçın 7'sini kazandı.", highlight:"Schwartzman Kazanır" },
+        { flag:"🇩🇪", teams:"Alexander Zverev vs Jan-Lennard Struff", detail:"Zverev, son 5 maçının 4'ünü kazanarak formunu yukarı taşıdı.", highlight:"Zverev Kazanır" }
       ],
       "💪 Servis Kırma": [
-        { flag:"🇷🇺", teams:"Medvedev vs Rublev", detail:"Rublev zayıf servis", highlight:"2+ Break" },
-        { flag:"🇬🇷", teams:"Tsitsipas vs Kyrgios", detail:"Kyrgios hatalı", highlight:"Break" },
-        { flag:"🇵🇱", teams:"Hurkacz vs Norrie", detail:"Norrie dönüşçü", highlight:"Break" },
-        { flag:"🇪🇸", teams:"Fokina vs Ramos", detail:"Toprakta çok break", highlight:"2+ Break" },
-        { flag:"🇺🇸", teams:"Tiafoe vs Fritz", detail:"Fritz zayıf", highlight:"Break" }
+        { flag:"🇷🇺", teams:"Daniil Medvedev vs Andrey Rublev", detail:"Medvedev, Rublev'e karşı oynadığı son 4 maçta setlerin çoğunda servis kırmayı başardı.", highlight:"Medvedev 2+ Kez Servis Kırar" },
+        { flag:"🇬🇷", teams:"Stefanos Tsitsipas vs Nick Kyrgios", detail:"Tsitsipas, son maçlarında ortalama her sette en az bir kez rakip servisini kırdı.", highlight:"Tsitsipas Servis Kırar" },
+        { flag:"🇵🇱", teams:"Hubert Hurkacz vs Cameron Norrie", detail:"Norrie, son dönemde geri dönüş oyunlarında set başına ortalama 1 servis kırdı.", highlight:"Norrie Servis Kırar" },
+        { flag:"🇪🇸", teams:"Alejandro Davidovich Fokina vs Albert Ramos-Vinolas", detail:"Bu iki ismin toprak kortta oynadığı karşılaşmaların çoğunda birden fazla servis kırma izledik.", highlight:"2+ Kez Servis Kırılır" },
+        { flag:"🇺🇸", teams:"Frances Tiafoe vs Taylor Fritz", detail:"Tiafoe, son 8 maçının 6'sında en az bir kez rakip servisini kırdı.", highlight:"Tiafoe Servis Kırar" }
       ]
     }
   },
@@ -223,7 +269,6 @@ const statsDB = {
 /* 20 ve 21 Kasım “bugün”ün birebir kopyası */
 statsDB["20"] = JSON.parse(JSON.stringify(statsDB["bugun"]));
 statsDB["21"] = JSON.parse(JSON.stringify(statsDB["bugun"]));
-
 
 
 /* ================================
@@ -294,8 +339,6 @@ document.querySelectorAll(".sport-pill").forEach(btn => {
     renderPage(currentDay, currentSport);
   };
 });
-
 </script>
 </body>
 </html>
-  YENİ İSTATİSTİK
