@@ -1,1 +1,743 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>Günlük Maç İstatistikleri</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    :root {
+      --bg: #f5f5f7;
+      --card: #ffffff;
+      --text: #111;
+      --soft: #666;
+      --accent: #16a34a;
+      --radius: 14px;
+    }
 
+    body {
+      background: var(--bg);
+      margin: 0;
+      font-family: system-ui, sans-serif;
+      padding: 16px;
+      color: var(--text);
+    }
+
+    h1 {
+      font-size: 22px;
+      font-weight: 700;
+      text-align: center;
+      margin: 0 0 10px 0;
+    }
+
+    .date-filters {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .date-pill {
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 13px;
+      border: 1px solid #ddd;
+      background: #fff;
+      cursor: pointer;
+    }
+
+    .date-pill.active {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+      font-weight: 600;
+    }
+
+    .section {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 16px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+
+    .stat-item {
+      border-bottom: 1px solid #e5e5e5;
+      padding: 14px 0;
+    }
+
+    .stat-item:last-child {
+      border-bottom: none;
+    }
+
+    .teams {
+      font-size: 16px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .flag {
+      font-size: 18px;
+    }
+
+    .detail {
+      font-size: 14px;
+      color: var(--soft);
+      margin: 6px 0;
+    }
+
+    .highlight {
+      color: var(--accent);
+      font-weight: 700;
+      margin-bottom: 8px;
+      display: block;
+    }
+
+    .btn {
+      background: var(--accent);
+      color: white;
+      padding: 10px 16px;
+      border: none;
+      border-radius: var(--radius);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      width: 100%;
+    }
+
+    .collapsible {
+      cursor: pointer;
+      padding: 14px;
+      background: var(--card);
+      border-radius: var(--radius);
+      font-weight: 700;
+      margin-top: 24px;
+      box-shadow: 0 1px 5px rgba(0,0,0,0.05);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .content {
+      display: block; /* Başlangıçta açık */
+      margin-top: 10px;
+    }
+
+    .content.closed {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Günlük Maç İstatistikleri</h1>
+
+  <!-- Tarih Filtreleri -->
+  <div class="date-filters">
+    <div class="date-pill active" data-day="bugun">Bugün</div>
+    <div class="date-pill" data-day="20kasim">20 Kasım</div>
+    <div class="date-pill" data-day="21kasim">21 Kasım</div>
+  </div>
+
+  <!-- 🆚 Maç Sonucu -->
+  <div class="collapsible">
+    <span>🆚 Maç Sonucu</span>
+  </div>
+  <div class="content">
+    <div class="section">
+      <div id="match-result-list"></div>
+    </div>
+  </div>
+
+  <!-- ⚽️ Toplam Gol -->
+  <div class="collapsible">
+    <span>⚽️ Toplam Gol</span>
+  </div>
+  <div class="content">
+    <div class="section">
+      <div id="goals-list"></div>
+    </div>
+  </div>
+
+  <!-- 🥅 Karşılıklı Gol -->
+  <div class="collapsible">
+    <span>🥅 Karşılıklı Gol</span>
+  </div>
+  <div class="content">
+    <div class="section">
+      <div id="btts-list"></div>
+    </div>
+  </div>
+
+  <!-- 🚩 Korner -->
+  <div class="collapsible">
+    <span>🚩 Korner</span>
+  </div>
+  <div class="content">
+    <div class="section">
+      <div id="corners-list"></div>
+    </div>
+  </div>
+
+  <!-- 🟨 Toplam Kart -->
+  <div class="collapsible">
+    <span>🟨 Toplam Kart</span>
+  </div>
+  <div class="content">
+    <div class="section">
+      <div id="cards-list"></div>
+    </div>
+  </div>
+
+  <script>
+    // 3 farklı gün için veri setleri
+    const statsData = {
+      bugun: {
+        match: [
+          {
+            flag: "🇹🇷",
+            teams: "Galatasaray vs Fenerbahçe",
+            detail: "Galatasaray son 7 lig maçında 6 galibiyet aldı.",
+            highlight: "Öne Çıkan: Galatasaray Kazanır"
+          },
+          {
+            flag: "🇬🇧",
+            teams: "Liverpool vs Chelsea",
+            detail: "Liverpool son 5 maçın 4’ünü kazandı.",
+            highlight: "Öne Çıkan: Liverpool Kazanır"
+          },
+          {
+            flag: "🇪🇸",
+            teams: "Barcelona vs Sevilla",
+            detail: "Barcelona son 6 maçta yenilmedi.",
+            highlight: "Öne Çıkan: Barcelona Kazanır"
+          },
+          {
+            flag: "🇮🇹",
+            teams: "Juventus vs Milan",
+            detail: "Juventus son 8 iç saha maçının 6’sını kazandı.",
+            highlight: "Öne Çıkan: Juventus Kaybetmez"
+          },
+          {
+            flag: "🇩🇪",
+            teams: "Dortmund vs Leverkusen",
+            detail: "Dortmund son 7 maçın 5’ini kazandı.",
+            highlight: "Öne Çıkan: Dortmund Kazanır"
+          }
+        ],
+        goals: [
+          {
+            flag: "🇬🇧",
+            teams: "Manchester City vs Arsenal",
+            detail: "City’nin son 5 maçının 4’ü 2.5 üst bitti.",
+            highlight: "Öne Çıkan: 2.5 Üst"
+          },
+          {
+            flag: "🇫🇷",
+            teams: "PSG vs Lyon",
+            detail: "PSG son 6 maçta toplam 18 gol attı.",
+            highlight: "Öne Çıkan: 3.5 Üst"
+          },
+          {
+            flag: "🇪🇸",
+            teams: "Real Madrid vs Villarreal",
+            detail: "Real Madrid’in son 5 maçının 4’ü KG Var ile sonuçlandı.",
+            highlight: "Öne Çıkan: 2.5 Üst"
+          },
+          {
+            flag: "🇮🇹",
+            teams: "Inter vs Napoli",
+            detail: "Inter son 5 maçta 11 gol attı.",
+            highlight: "Öne Çıkan: Inter 1.5 Üst Gol"
+          },
+          {
+            flag: "🇬🇧",
+            teams: "Tottenham vs Brighton",
+            detail: "Brighton’ın son 10 maçının 9’u 2.5 üst bitti.",
+            highlight: "Öne Çıkan: 2.5 Üst"
+          }
+        ],
+        btts: [
+          {
+            flag: "🇹🇷",
+            teams: "Adana Demirspor vs Başakşehir",
+            detail: "Adana Demirspor’un son 7 maçının 6’sında KG Var oldu.",
+            highlight: "Öne Çıkan: KG Var"
+          },
+          {
+            flag: "🇩🇪",
+            teams: "Leipzig vs Frankfurt",
+            detail: "Leipzig’in son 5 maçının 4’ünde iki takım da gol buldu.",
+            highlight: "Öne Çıkan: KG Var"
+          },
+          {
+            flag: "🇮🇹",
+            teams: "Atalanta vs Roma",
+            detail: "Atalanta’nın son 6 maçının 5’i KG Var bitti.",
+            highlight: "Öne Çıkan: KG Var"
+          },
+          {
+            flag: "🇪🇸",
+            teams: "Betis vs Getafe",
+            detail: "Getafe son 6 deplasmanın 5’inde gol attı.",
+            highlight: "Öne Çıkan: KG Var"
+          },
+          {
+            flag: "🇬🇧",
+            teams: "Newcastle vs West Ham",
+            detail: "Newcastle’ın son 5 maçının 4’ünde her iki takım da gol buldu.",
+            highlight: "Öne Çıkan: KG Var"
+          }
+        ],
+        corners: [
+          {
+            flag: "🇬🇧",
+            teams: "Manchester United vs Brentford",
+            detail: "United’ın son 5 maçında ortalama 10.4 korner çıktı.",
+            highlight: "Öne Çıkan: 9.5 Üst Korner"
+          },
+          {
+            flag: "🇹🇷",
+            teams: "Beşiktaş vs Konyaspor",
+            detail: "Beşiktaş’ın iç saha maçlarında ortalama 9 korner kullanılıyor.",
+            highlight: "Öne Çıkan: 8.5 Üst Korner"
+          },
+          {
+            flag: "🇮🇹",
+            teams: "Lazio vs Fiorentina",
+            detail: "Lazio’nun son 4 maçında 9 ve üzeri korner görüldü.",
+            highlight: "Öne Çıkan: 9.5 Üst Korner"
+          },
+          {
+            flag: "🇪🇸",
+            teams: "Valencia vs Osasuna",
+            detail: "Valencia’nın son 5 maçında ortalama 10 korner var.",
+            highlight: "Öne Çıkan: 9.5 Üst Korner"
+          },
+          {
+            flag: "🇩🇪",
+            teams: "Bayern Münih vs Stuttgart",
+            detail: "Bayern maçlarında maç başı ortalama 11 korner kullanılıyor.",
+            highlight: "Öne Çıkan: 10.5 Üst Korner"
+          }
+        ],
+        cards: [
+          {
+            flag: "🇹🇷",
+            teams: "Trabzonspor vs Ankaragücü",
+            detail: "Trabzonspor’un son 5 maçında ortalama 5.2 kart çıktı.",
+            highlight: "Öne Çıkan: 4.5 Üst Kart"
+          },
+          {
+            flag: "🇪🇸",
+            teams: "Atletico Madrid vs Bilbao",
+            detail: "Atletico derbilerinde ortalama 6 sarı kart görüldü.",
+            highlight: "Öne Çıkan: 5.5 Üst Kart"
+          },
+          {
+            flag: "🇮🇹",
+            teams: "Napoli vs Torino",
+            detail: "Torino’nun son 6 maçının 5’inde 5 ve üzeri kart çıktı.",
+            highlight: "Öne Çıkan: 4.5 Üst Kart"
+          },
+          {
+            flag: "🇫🇷",
+            teams: "Lille vs Nice",
+            detail: "Nice’in son 5 maçının 4’ü kart bakımından sert geçti (5+ kart).",
+            highlight: "Öne Çıkan: 4.5 Üst Kart"
+          },
+          {
+            flag: "🇬🇧",
+            teams: "Everton vs Wolves",
+            detail: "Everton’un son 7 maçında ortalama 4.8 kart var.",
+            highlight: "Öne Çıkan: 3.5 Üst Kart"
+          }
+        ]
+      },
+
+      "20kasim": {
+        match: [
+          {
+            flag: "🇹🇷",
+            teams: "Trabzonspor vs Beşiktaş",
+            detail: "Trabzonspor son 8 iç saha maçında 6 galibiyet aldı.",
+            highlight: "Öne Çıkan: Trabzonspor Kazanır"
+          },
+          {
+            flag: "🇬🇧",
+            teams: "Leicester vs Leeds",
+            detail: "Leicester son 5 maçın 4’ünü kazandı.",
+            highlight: "Öne Çıkan: Leicester Kazanır"
+          },
+          {
+            flag: "🇳🇱",
+            teams: "Ajax vs Feyenoord",
+            detail: "Ajax son 6 derbinin 4’ünü kazandı.",
+            highlight: "Öne Çıkan: Ajax Kazanır"
+          },
+          {
+            flag: "🇮🇹",
+            teams: "Roma vs Lazio",
+            detail: "Roma son 7 iç saha maçında yenilmedi.",
+            highlight: "Öne Çıkan: Roma Kaybetmez"
+          },
+          {
+            flag: "🇵🇹",
+            teams: "Porto vs Benfica",
+            detail: "Porto son 5 lig maçında sadece 1 kez kaybetti.",
+            highlight: "Öne Çıkan: Porto veya Beraberlik"
+          }
+        ],
+        goals: [
+          {
+            flag: "🇫🇷",
+            teams: "Marsilya vs Monaco",
+            detail: "Son 6 maçın 5’i 2.5 üst bitti.",
+            highlight: "Öne Çıkan: 2.5 Üst"
+          },
+          {
+            flag: "🇮🇹",
+            teams: "Atalanta vs Udinese",
+            detail: "Atalanta son 5 maçta 12 gol attı.",
+            highlight: "Öne Çıkan: Atalanta 1.5 Üst Gol"
+          },
+          {
+            flag: "🇪🇸",
+            teams: "Sevilla vs Valencia",
+            detail: "Son 4 maçın 3’ü 3 gol ve üzeri ile bitti.",
+            highlight: "Öne Çıkan: 2.5 Üst"
+          },
+          {
+            flag: "🇩🇪",
+            teams: "Eintracht Frankfurt vs Wolfsburg",
+            detail: "Son 5 maçın 4’ü 3 gol ve üzeri ile tamamlandı.",
+            highlight: "Öne Çıkan: 2.5 Üst"
+          },
+          {
+            flag: "🇬🇧",
+            teams: "Celtic vs Rangers",
+            detail: "Son 5 derbinin 4’ü bol gollü geçti.",
+            highlight: "Öne Çıkan: 2.5 Üst"
+          }
+        ],
+        btts: [
+          {
+            flag: "🇬🇧",
+            teams: "Brentford vs Brighton",
+            detail: "Brighton’un son 10 maçının 9’unda KG Var oldu.",
+            highlight: "Öne Çıkan: KG Var"
+          },
+          {
+            flag: "🇩🇪",
+            teams: "Leverkusen vs Freiburg",
+            detail: "Leverkusen’in son 6 maçının 5’i KG Var bitti.",
+            highlight: "Öne Çıkan: KG Var"
+          },
+          {
+            flag: "🇮🇹",
+            teams: "Inter vs Bologna",
+            detail: "Bologna son 7 maçın 6’sında gol bulmayı başardı.",
+            highlight: "Öne Çıkan: KG Var"
+          },
+          {
+            flag: "🇪🇸",
+            teams: "Sociedad vs Villarreal",
+            detail: "Sociedad’ın son 5 maçının 4’ü KG Var ile sonuçlandı.",
+            highlight: "Öne Çıkan: KG Var"
+          },
+          {
+            flag: "🇵🇹",
+            teams: "Sporting vs Braga",
+            detail: "Braga son 6 maçın 5’inde gol attı.",
+            highlight: "Öne Çıkan: KG Var"
+          }
+        ],
+        corners: [
+          {
+            flag: "🇹🇷",
+            teams: "Fenerbahçe vs Sivasspor",
+            detail: "Fenerbahçe iç saha maçlarında maç başı 10 korner ortalamasına sahip.",
+            highlight: "Öne Çıkan: 9.5 Üst Korner"
+          },
+          {
+            flag: "🇬🇧",
+            teams: "Arsenal vs Crystal Palace",
+            detail: "Arsenal’in son 5 maçında en az 9 korner çıktı.",
+            highlight: "Öne Çıkan: 8.5 Üst Korner"
+          },
+          {
+            flag: "🇩🇪",
+            teams: "Dortmund vs Union Berlin",
+            detail: "Dortmund’un son 4 maçında 10+ korner görüldü.",
+            highlight: "Öne Çıkan: 9.5 Üst Korner"
+          },
+          {
+            flag: "🇮🇹",
+            teams: "Milan vs Sampdoria",
+            detail: "Milan’ın son 5 maçında ortalama 9.8 korner var.",
+            highlight: "Öne Çıkan: 9.5 Üst Korner"
+          },
+          {
+            flag: "🇫🇷",
+            teams: "Lyon vs Rennes",
+            detail: "Rennes’in son 6 maçında 9 ve üzeri korner çıktı.",
+            highlight: "Öne Çıkan: 8.5 Üst Korner"
+          }
+        ],
+        cards: [
+          {
+            flag: "🇪🇸",
+            teams: "Sevilla vs Betis",
+            detail: "Andalucia derbilerinde ortalama 7 kart görülüyor.",
+            highlight: "Öne Çıkan: 5.5 Üst Kart"
+          },
+          {
+            flag: "🇮🇹",
+            teams: "Torino vs Genoa",
+            detail: "Torino’nun son 6 maçının 5’inde 5+ kart çıktı.",
+            highlight: "Öne Çıkan: 4.5 Üst Kart"
+          },
+          {
+            flag: "🇬🇧",
+            teams: "Chelsea vs Tottenham",
+            detail: "Londra derbilerinde ortalama 5.6 kart görülüyor.",
+            highlight: "Öne Çıkan: 4.5 Üst Kart"
+          },
+          {
+            flag: "🇩🇪",
+            teams: "Schalke vs Hamburg",
+            detail: "Schalke son 5 maçında 4 ve üzeri kart gördü.",
+            highlight: "Öne Çıkan: 3.5 Üst Kart"
+          },
+          {
+            flag: "🇹🇷",
+            teams: "Alanyaspor vs Kayserispor",
+            detail: "Alanyaspor’un son 5 maçında ortalama 4.6 kart çıktı.",
+            highlight: "Öne Çıkan: 3.5 Üst Kart"
+          }
+        ]
+      },
+
+      "21kasim": {
+        match: [
+          {
+            flag: "🇹🇷",
+            teams: "Adana Demirspor vs Başakşehir",
+            detail: "Adana Demirspor son 6 iç saha maçında 5 galibiyet aldı.",
+            highlight: "Öne Çıkan: Adana Demirspor Kazanır"
+          },
+          {
+            flag: "🇩🇪",
+            teams: "Bayern Münih vs Leipzig",
+            detail: "Bayern son 10 lig maçının 8’ini kazandı.",
+            highlight: "Öne Çıkan: Bayern Kazanır"
+          },
+          {
+            flag: "🇵🇹",
+            teams: "Sporting Lizbon vs Braga",
+            detail: "Sporting iç sahada son 7 maçın 6’sını kazandı.",
+            highlight: "Öne Çıkan: Sporting Kazanır"
+          },
+          {
+            flag: "🇪🇸",
+            teams: "Villarreal vs Real Sociedad",
+            detail: "Villarreal iç sahada son 5 maçın 4’ünde puan aldı.",
+            highlight: "Öne Çıkan: Villarreal Kaybetmez"
+          },
+          {
+            flag: "🇮🇹",
+            teams: "Lazio vs Fiorentina",
+            detail: "Lazio son 4 maçta 3 galibiyet aldı.",
+            highlight: "Öne Çıkan: Lazio Kazanır"
+          }
+        ],
+        goals: [
+          {
+            flag: "🇬🇧",
+            teams: "Newcastle vs West Ham",
+            detail: "Newcastle son 6 maçta 14 gol attı.",
+            highlight: "Öne Çıkan: 2.5 Üst"
+          },
+          {
+            flag: "🇮🇹",
+            teams: "Bologna vs Torino",
+            detail: "Torino’nun son 5 maçının 4’ü 2 gol ve üzeri ile bitti.",
+            highlight: "Öne Çıkan: 1.5 Üst"
+          },
+          {
+            flag: "🇫🇷",
+            teams: "Lille vs Nice",
+            detail: "Nice’in son 7 maçının 5’i 2-3 gol bandında bitti.",
+            highlight: "Öne Çıkan: 1.5 Üst"
+          },
+          {
+            flag: "🇪🇸",
+            teams: "Betis vs Getafe",
+            detail: "Getafe son 6 deplasmanın 5’inde gol buldu.",
+            highlight: "Öne Çıkan: 2.5 Üst"
+          },
+          {
+            flag: "🇧🇷",
+            teams: "Palmeiras vs Flamengo",
+            detail: "Son 5 maçın 4’ü 2.5 üst ile tamamlandı.",
+            highlight: "Öne Çıkan: 2.5 Üst"
+          }
+        ],
+        btts: [
+          {
+            flag: "🇬🇧",
+            teams: "Aston Villa vs Fulham",
+            detail: "Villa’nın son 6 lig maçının 5’inde KG Var oldu.",
+            highlight: "Öne Çıkan: KG Var"
+          },
+          {
+            flag: "🇩🇪",
+            teams: "RB Leipzig vs Hoffenheim",
+            detail: "Hoffenheim’ın son 7 maçının 6’sı KG Var bitti.",
+            highlight: "Öne Çıkan: KG Var"
+          },
+          {
+            flag: "🇮🇹",
+            teams: "Sassuolo vs Verona",
+            detail: "Sassuolo’nun son 5 maçının 4’ünde iki takım da gol buldu.",
+            highlight: "Öne Çıkan: KG Var"
+          },
+          {
+            flag: "🇵🇹",
+            teams: "Portimonense vs Rio Ave",
+            detail: "Portimonense’nin son 6 maçının 4’ü KG Var ile sonuçlandı.",
+            highlight: "Öne Çıkan: KG Var"
+          },
+          {
+            flag: "🇪🇸",
+            teams: "Celta Vigo vs Granada",
+            detail: "Celta’nın son 5 maçının 4’ü KG Var bitti.",
+            highlight: "Öne Çıkan: KG Var"
+          }
+        ],
+        corners: [
+          {
+            flag: "🇬🇧",
+            teams: "West Ham vs Everton",
+            detail: "West Ham’ın son 5 maçında ortalama 9.6 korner var.",
+            highlight: "Öne Çıkan: 8.5 Üst Korner"
+          },
+          {
+            flag: "🇩🇪",
+            teams: "Mönchengladbach vs Mainz",
+            detail: "Gladbach’ın son 4 maçının 3’ünde 10+ korner çıktı.",
+            highlight: "Öne Çıkan: 9.5 Üst Korner"
+          },
+          {
+            flag: "🇮🇹",
+            teams: "Juventus vs Empoli",
+            detail: "Juventus son 6 maçında maç başı 9 korner görüyor.",
+            highlight: "Öne Çıkan: 8.5 Üst Korner"
+          },
+          {
+            flag: "🇫🇷",
+            teams: "PSG vs Nice",
+            detail: "PSG’nin iç saha maçlarında ortalama 10 korner kullanılıyor.",
+            highlight: "Öne Çıkan: 9.5 Üst Korner"
+          },
+          {
+            flag: "🇹🇷",
+            teams: "Kasımpaşa vs Antalyaspor",
+            detail: "Kasımpaşa’nın son 5 maçında 9 ve üzeri korner çıktı.",
+            highlight: "Öne Çıkan: 8.5 Üst Korner"
+          }
+        ],
+        cards: [
+          {
+            flag: "🇬🇧",
+            teams: "Burnley vs Sheffield United",
+            detail: "Burnley’nin son 6 maçının 5’inde 5+ kart görüldü.",
+            highlight: "Öne Çıkan: 4.5 Üst Kart"
+          },
+          {
+            flag: "🇩🇪",
+            teams: "Hertha Berlin vs St. Pauli",
+            detail: "Hertha’nın son 5 maçında ortalama 5.1 kart çıktı.",
+            highlight: "Öne Çıkan: 4.5 Üst Kart"
+          },
+          {
+            flag: "🇮🇹",
+            teams: "Cagliari vs Lecce",
+            detail: "Cagliari’nin son 4 maçının 3’ü sert geçti (5+ kart).",
+            highlight: "Öne Çıkan: 4.5 Üst Kart"
+          },
+          {
+            flag: "🇵🇹",
+            teams: "Benfica vs Guimaraes",
+            detail: "Guimaraes derbilerinde ortalama 5.5 kart görülüyor.",
+            highlight: "Öne Çıkan: 4.5 Üst Kart"
+          },
+          {
+            flag: "🇧🇷",
+            teams: "Corinthians vs Sao Paulo",
+            detail: "Brezilya derbilerinde son dönemde yüksek kart ortalaması (6+).",
+            highlight: "Öne Çıkan: 5.5 Üst Kart"
+          }
+        ]
+      }
+    };
+
+    const matchContainer   = document.getElementById("match-result-list");
+    const goalsContainer   = document.getElementById("goals-list");
+    const bttsContainer    = document.getElementById("btts-list");
+    const cornersContainer = document.getElementById("corners-list");
+    const cardsContainer   = document.getElementById("cards-list");
+    const datePills        = document.querySelectorAll(".date-pill");
+
+    function renderGroup(container, items) {
+      container.innerHTML = items.map(item => `
+        <div class="stat-item">
+          <div class="teams">
+            <span class="flag">${item.flag}</span>
+            <span>${item.teams}</span>
+          </div>
+          <div class="detail">${item.detail}</div>
+          <span class="highlight">${item.highlight}</span>
+          <button class="btn">Bahis Yap</button>
+        </div>
+      `).join("");
+    }
+
+    function renderDay(dayKey) {
+      const dayData = statsData[dayKey];
+      if (!dayData) return;
+
+      renderGroup(matchContainer,   dayData.match);
+      renderGroup(goalsContainer,   dayData.goals);
+      renderGroup(bttsContainer,    dayData.btts);
+      renderGroup(cornersContainer, dayData.corners);
+      renderGroup(cardsContainer,   dayData.cards);
+    }
+
+    // Tarih filtreleri click
+    datePills.forEach(pill => {
+      pill.addEventListener("click", () => {
+        datePills.forEach(p => p.classList.remove("active"));
+        pill.classList.add("active");
+        const dayKey = pill.dataset.day;
+        renderDay(dayKey);
+      });
+    });
+
+    // Açılır kapanır menü sistemi
+    const colls = document.querySelectorAll(".collapsible");
+    colls.forEach(col => {
+      col.addEventListener("click", () => {
+        const content = col.nextElementSibling;
+        content.classList.toggle("closed");
+      });
+    });
+
+    // İlk yüklemede Bugün verilerini getir
+    renderDay("bugun");
+  </script>
+
+</body>
+</html>
