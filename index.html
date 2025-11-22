@@ -166,12 +166,8 @@ h1 {
 
   <h1>Günlük Maç İstatistikleri</h1>
 
-  <!-- TARİH -->
-  <div class="date-filters">
-    <div class="date-pill active" data-day="bugun">Bugün</div>
-    <div class="date-pill" data-day="20">20 Kasım</div>
-    <div class="date-pill" data-day="21">21 Kasım</div>
-  </div>
+  <!-- TARİH (JS ile doldurulacak) -->
+  <div class="date-filters" id="dateFilters"></div>
 
   <!-- SPOR -->
   <div class="sport-filters">
@@ -186,13 +182,15 @@ h1 {
 
 <script>
 /* ============================
-   TÜM VERİLER (3 GÜN DOLU)
+   TÜM VERİLER
+   (0 = Bugün, 1 = Yarın, 2 = Öbür gün)
+   Şimdilik 3 gün de aynı içeriği kullanıyor.
 ============================ */
 
 const statsDB = {
 
-  /* 🔥 BUGÜN */
-  bugun: {
+  /* 🔥 BUGÜN (0. gün) */
+  "0": {
     futbol: {
       "🆚 Maç Sonucu": [
         { flag:"🇹🇷", teams:"Galatasaray vs Fenerbahçe", detail:"Galatasaray, ligde oynadığı son 7 maçın 6'sını kazandı.", highlight:"Galatasaray Kazanır" },
@@ -257,18 +255,56 @@ const statsDB = {
         { flag:"🇺🇸", teams:"Frances Tiafoe vs Taylor Fritz", detail:"Tiafoe, son 8 maçının 6'sında en az bir kez rakip servisini kırdı.", highlight:"Tiafoe Servis Kırar" }
       ]
     }
-  },
-
-  /* 🔥 20 KASIM = aynı format */
-  20: {},
-  
-  /* 🔥 21 KASIM = aynı format */
-  21: {}
+  }
 };
 
-/* 20 ve 21 Kasım “bugün”ün birebir kopyası */
-statsDB["20"] = JSON.parse(JSON.stringify(statsDB["bugun"]));
-statsDB["21"] = JSON.parse(JSON.stringify(statsDB["bugun"]));
+/* 1. ve 2. gün, şimdilik 0. günün birebir kopyası */
+statsDB["1"] = JSON.parse(JSON.stringify(statsDB["0"]));
+statsDB["2"] = JSON.parse(JSON.stringify(statsDB["0"]));
+
+
+/* ================================
+   TARİH PİLLERİNİ OTOMATİK OLUŞTUR
+   (Bugün, Yarın, Öbür Gün gibi)
+================================ */
+function createDatePills() {
+  const dateFiltersEl = document.getElementById("dateFilters");
+  const today = new Date();
+  const monthNames = [
+    "Ocak","Şubat","Mart","Nisan","Mayıs","Haziran",
+    "Temmuz","Ağustos","Eylül","Ekim","Kasım","Aralık"
+  ];
+
+  for (let i = 0; i < 3; i++) {
+    const d = new Date(today);
+    d.setDate(today.getDate() + i);
+
+    const pill = document.createElement("div");
+    pill.className = "date-pill" + (i === 0 ? " active" : "");
+    pill.dataset.day = String(i);
+
+    if (i === 0) {
+      pill.textContent = "Bugün";
+    } else {
+      const gun = String(d.getDate()).padStart(2, "0");
+      const ay = monthNames[d.getMonth()];
+      pill.textContent = `${gun} ${ay}`;
+    }
+
+    dateFiltersEl.appendChild(pill);
+  }
+
+  /* TARİH TIKLAMA OLAYLARI */
+  document.querySelectorAll(".date-pill").forEach(btn => {
+    btn.onclick = () => {
+      document.querySelectorAll(".date-pill").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+
+      currentDay = btn.dataset.day;
+      renderPage(currentDay, currentSport);
+    };
+  });
+}
 
 
 /* ================================
@@ -313,21 +349,12 @@ function renderPage(day, sport) {
 /* ================================
    VARSAYILAN ÇIKIŞ
 ================================ */
-let currentDay = "bugun";
+let currentDay = "0";
 let currentSport = "futbol";
+
+/* Önce tarihleri oluştur, sonra sayfayı çiz */
+createDatePills();
 renderPage(currentDay, currentSport);
-
-
-/* TARİH TIKLAMA */
-document.querySelectorAll(".date-pill").forEach(btn => {
-  btn.onclick = () => {
-    document.querySelectorAll(".date-pill").forEach(b => b.classList.remove("active"));
-    btn.classList.add("active");
-
-    currentDay = btn.dataset.day;
-    renderPage(currentDay, currentSport);
-  };
-});
 
 /* SPOR TIKLAMA */
 document.querySelectorAll(".sport-pill").forEach(btn => {
