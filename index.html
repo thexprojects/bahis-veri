@@ -155,6 +155,11 @@ h1 {
 
 <script>
 /* ============================
+   AYAR: BACKEND BASE URL
+============================ */
+const API_BASE = "https://sports-stats-api-ffx.onrender.com";
+
+/* ============================
    TARİH PİLL'LERİNİ OLUŞTUR
 ============================ */
 const dateFiltersEl = document.getElementById("dateFilters");
@@ -200,16 +205,19 @@ async function loadStats() {
   categoriesEl.innerHTML = "";
 
   try {
-    const url = `http://localhost:4000/api/stats?sport=${encodeURIComponent(currentSport)}&day=${currentDayOffset}`;
+    const url = `${API_BASE}/api/stats?sport=${encodeURIComponent(
+      currentSport
+    )}&day=${currentDayOffset}`;
     const res = await fetch(url);
     if (!res.ok) {
       throw new Error("Sunucudan geçerli yanıt alınamadı");
     }
     const data = await res.json();
 
-    // Futbol: fixtures dönüyor
-    if (data.sport === "futbol" && Array.isArray(data.fixtures)) {
-      const items = data.fixtures.map(f => {
+    // Futbol: backend şu yapıda dönüyor:
+    // { date, sport: "futbol", matches: [...] }
+    if (data.sport === "futbol" && Array.isArray(data.matches)) {
+      const items = data.matches.map((f) => {
         const league = f.league?.name || "Lig";
         const country = f.league?.country || "";
         const home = f.teams?.home?.name || "Ev Sahibi";
@@ -219,12 +227,12 @@ async function loadStats() {
           flag: countryToFlag(country),
           teams: `${home} vs ${away}`,
           detail: `${league} maçında iki takım da önemli bir karşılaşmaya çıkıyor.`,
-          highlight: "Maçı İncele"
+          highlight: "Maçı İncele",
         };
       });
 
       const statsObj = {
-        "⚽️ Bugünün Maçları": items
+        "⚽️ Bugünün Maçları": items,
       };
 
       renderCategories(statsObj);
@@ -234,7 +242,8 @@ async function loadStats() {
       renderCategories(data.stats);
     } else {
       categoriesEl.innerHTML = "";
-      statusEl.textContent = "Bu gün için gösterilecek istatistik bulunamadı.";
+      statusEl.textContent =
+        "Bu gün için gösterilecek istatistik bulunamadı.";
       return;
     }
 
@@ -270,14 +279,20 @@ function renderCategories(statsObj) {
       </div>
       <div class="content">
         <div class="section">
-          ${items.map(item => `
+          ${items
+            .map(
+              (item) => `
             <div class="stat-item">
-              <div class="teams"><span>${item.flag || ""}</span> ${item.teams || ""}</div>
+              <div class="teams"><span>${item.flag || ""}</span> ${
+                item.teams || ""
+              }</div>
               <div class="detail">${item.detail || ""}</div>
               <div class="highlight">${item.highlight || ""}</div>
               <button class="btn">Bahis Yap</button>
             </div>
-          `).join("")}
+          `
+            )
+            .join("")}
         </div>
       </div>
     `;
@@ -286,7 +301,7 @@ function renderCategories(statsObj) {
   });
 
   // Collapse olayları
-  document.querySelectorAll(".collapsible").forEach(c => {
+  document.querySelectorAll(".collapsible").forEach((c) => {
     const content = c.nextElementSibling;
     const chevron = c.querySelector(".chevron");
     c.onclick = () => {
@@ -313,7 +328,7 @@ function countryToFlag(country = "") {
     Netherlands: "🇳🇱",
     USA: "🇺🇸",
     Brazil: "🇧🇷",
-    Argentina: "🇦🇷"
+    Argentina: "🇦🇷",
   };
   return map[country] || "🏳️";
 }
@@ -323,9 +338,11 @@ function countryToFlag(country = "") {
 ============================ */
 function bindEvents() {
   // Tarih tıklama
-  document.querySelectorAll(".date-pill").forEach(btn => {
+  document.querySelectorAll(".date-pill").forEach((btn) => {
     btn.onclick = () => {
-      document.querySelectorAll(".date-pill").forEach(b => b.classList.remove("active"));
+      document
+        .querySelectorAll(".date-pill")
+        .forEach((b) => b.classList.remove("active"));
       btn.classList.add("active");
       currentDayOffset = parseInt(btn.dataset.offset, 10) || 0;
       loadStats();
@@ -333,9 +350,11 @@ function bindEvents() {
   });
 
   // Spor tıklama
-  document.querySelectorAll(".sport-pill").forEach(btn => {
+  document.querySelectorAll(".sport-pill").forEach((btn) => {
     btn.onclick = () => {
-      document.querySelectorAll(".sport-pill").forEach(b => b.classList.remove("active"));
+      document
+        .querySelectorAll(".sport-pill")
+        .forEach((b) => b.classList.remove("active"));
       btn.classList.add("active");
       currentSport = btn.dataset.sport;
       loadStats();
