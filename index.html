@@ -155,11 +155,6 @@ h1 {
 
 <script>
 /* ============================
-   BACKEND URL (Render)
-============================ */
-const API_BASE = "https://sports-stats-api-fftx.onrender.com";
-
-/* ============================
    TARİH PİLL'LERİNİ OLUŞTUR
 ============================ */
 const dateFiltersEl = document.getElementById("dateFilters");
@@ -176,7 +171,9 @@ function formatDateLabel(offset) {
     "Ocak","Şubat","Mart","Nisan","Mayıs","Haziran",
     "Temmuz","Ağustos","Eylül","Ekim","Kasım","Aralık"
   ];
-  return `${d.getDate()} ${aylar[d.getMonth()]}`;
+  const gun = d.getDate();
+  const ay = aylar[d.getMonth()];
+  return `${gun} ${ay}`;
 }
 
 function initDatePills() {
@@ -192,8 +189,8 @@ function initDatePills() {
 /* ============================
    GLOBAL DURUM
 ============================ */
-let currentSport = "futbol";
-let currentDayOffset = 0;
+let currentSport = "futbol";  // futbol / basketbol / tenis
+let currentDayOffset = 0;     // 0 = bugün, 1 = yarın, 2 = öbür gün
 
 /* ============================
    BACKEND'DEN VERİ ÇEK
@@ -203,17 +200,18 @@ async function loadStats() {
   categoriesEl.innerHTML = "";
 
   try {
-    const url = `${API_BASE}/api/stats?sport=${encodeURIComponent(currentSport)}&day=${currentDayOffset}`;
-    
+    const url = `https://sports-stats-api-fftx.onrender.com/api/stats?sport=${encodeURIComponent(currentSport)}&day=${currentDayOffset}`;
     const res = await fetch(url);
-
-    if (!res.ok) throw new Error("Sunucudan geçerli yanıt alınamadı");
-
+    if (!res.ok) {
+      throw new Error("Sunucudan geçerli yanıt alınamadı");
+    }
     const data = await res.json();
 
-    // Futbol API (fixtures formatı)
-    if (data.sport === "futbol" && Array.isArray(data.matches)) {
-      const items = data.matches.map(f => {
+    // FUTBOL: backend { sport: 'futbol', matches: [...] } döndürüyor
+    const futbolMatches = Array.isArray(data.matches) ? data.matches : null;
+
+    if (data.sport === "futbol" && futbolMatches) {
+      const items = futbolMatches.map(f => {
         const league = f.league?.name || "Lig";
         const country = f.league?.country || "";
         const home = f.teams?.home?.name || "Ev Sahibi";
@@ -222,20 +220,22 @@ async function loadStats() {
         return {
           flag: countryToFlag(country),
           teams: `${home} vs ${away}`,
-          detail: `${league} maçında önemli bir karşılaşma oynanacak.`,
+          detail: `${league} mücadelesinde iki takım da önemli bir sınav verecek.`,
           highlight: "Maçı İncele"
         };
       });
 
-      renderCategories({ "⚽️ Bugünün Maçları": items });
-    }
+      const statsObj = {
+        "⚽️ Bugünün Maçları": items
+      };
 
-    // Basketbol & Tenis (statik format)
-    else if (data.stats) {
+      renderCategories(statsObj);
+    }
+    // Basketbol / Tenis: stats objesi dönüyor
+    else if (data.stats && typeof data.stats === "object") {
       renderCategories(data.stats);
-    }
-
-    else {
+    } else {
+      categoriesEl.innerHTML = "";
       statusEl.textContent = "Bu gün için gösterilecek istatistik yok.";
       return;
     }
@@ -252,14 +252,17 @@ async function loadStats() {
 ============================ */
 function renderCategories(statsObj) {
   categoriesEl.innerHTML = "";
+
   const entries = Object.entries(statsObj);
 
   if (!entries.length) {
-    statusEl.textContent = "Gösterilecek veri bulunamadı.";
+    statusEl.textContent = "Bu gün için gösterilecek istatistik yok.";
     return;
   }
 
   entries.forEach(([category, items]) => {
+    if (!Array.isArray(items) || items.length === 0) return;
+
     const block = document.createElement("div");
 
     block.innerHTML = `
@@ -271,9 +274,9 @@ function renderCategories(statsObj) {
         <div class="section">
           ${items.map(item => `
             <div class="stat-item">
-              <div class="teams"><span>${item.flag || ""}</span> ${item.teams}</div>
-              <div class="detail">${item.detail}</div>
-              <div class="highlight">${item.highlight}</div>
+              <div class="teams"><span>${item.flag || ""}</span> ${item.teams || ""}</div>
+              <div class="detail">${item.detail || ""}</div>
+              <div class="highlight">${item.highlight || ""}</div>
               <button class="btn">Bahis Yap</button>
             </div>
           `).join("")}
@@ -284,8 +287,10 @@ function renderCategories(statsObj) {
     categoriesEl.appendChild(block);
   });
 
+  // Collapse olayları
   document.querySelectorAll(".collapsible").forEach(c => {
     const content = c.nextElementSibling;
+    const chevron = c.querySelector(".chevron");
     c.onclick = () => {
       content.classList.toggle("closed");
       c.classList.toggle("closed");
@@ -294,32 +299,42 @@ function renderCategories(statsObj) {
 }
 
 /* ============================
-   BAYRAK EMOJİ
+   ÜLKE ADINDAN BAYRAK EMOJİSİ
 ============================ */
 function countryToFlag(country = "") {
   const map = {
-    Turkey: "🇹🇷", Türkiye: "🇹🇷",
-    England: "🏴", "United Kingdom": "🏴",
-    Spain: "🇪🇸", Germany: "🇩🇪", Italy: "🇮🇹",
-    France: "🇫🇷", Portugal: "🇵🇹", Netherlands: "🇳🇱",
-    USA: "🇺🇸", Brazil: "🇧🇷", Argentina: "🇦🇷"
+    Turkey: "🇹🇷",
+    Türkiye: "🇹🇷",
+    England: "🏴",
+    "United Kingdom": "🏴",
+    Spain: "🇪🇸",
+    Germany: "🇩🇪",
+    Italy: "🇮🇹",
+    France: "🇫🇷",
+    Portugal: "🇵🇹",
+    Netherlands: "🇳🇱",
+    USA: "🇺🇸",
+    Brazil: "🇧🇷",
+    Argentina: "🇦🇷"
   };
   return map[country] || "🏳️";
 }
 
 /* ============================
-   EVENT BINDINGS
+   EVENT BINDING
 ============================ */
 function bindEvents() {
+  // Tarih tıklama
   document.querySelectorAll(".date-pill").forEach(btn => {
     btn.onclick = () => {
       document.querySelectorAll(".date-pill").forEach(b => b.classList.remove("active"));
       btn.classList.add("active");
-      currentDayOffset = parseInt(btn.dataset.offset);
+      currentDayOffset = parseInt(btn.dataset.offset, 10) || 0;
       loadStats();
     };
   });
 
+  // Spor tıklama
   document.querySelectorAll(".sport-pill").forEach(btn => {
     btn.onclick = () => {
       document.querySelectorAll(".sport-pill").forEach(b => b.classList.remove("active"));
@@ -331,12 +346,11 @@ function bindEvents() {
 }
 
 /* ============================
-   SAYFA BAŞLANGICI
+   SAYFA YÜKLENİNCE
 ============================ */
 initDatePills();
 bindEvents();
 loadStats();
 </script>
-
 </body>
 </html>
