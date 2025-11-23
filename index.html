@@ -1,356 +1,385 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-<meta charset="UTF-8">
-<title>Günlük Maç İstatistikleri</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8" />
+  <title>Günlük Maç İstatistikleri</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    * { box-sizing: border-box; }
 
-<style>
-body {
-  font-family: system-ui, sans-serif;
-  margin: 0;
-  padding: 16px;
-  background: #f6f7f9;
-}
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+      background: #050816;
+      color: #e5e7eb;
+    }
 
-h1 {
-  text-align: center;
-  font-size: 22px;
-  font-weight: 700;
-  margin-bottom: 16px;
-}
+    .container {
+      max-width: 640px;
+      margin: 0 auto;
+      padding: 16px 12px 40px;
+    }
 
-/* TARİH */
-.date-filters {
-  display: flex;
-  justify-content: center;
-  gap: 8px;
-  margin-bottom: 14px;
-}
-.date-pill {
-  padding: 6px 12px;
-  background: #fff;
-  border: 1px solid #ccc;
-  border-radius: 999px;
-  cursor: pointer;
-  font-size: 13px;
-}
-.date-pill.active {
-  background: #16a34a;
-  color: #fff;
-  border-color: #16a34a;
-}
+    h1 {
+      text-align: center;
+      font-size: 20px;
+      margin: 6px 0 4px;
+    }
 
-/* SPOR */
-.sport-filters {
-  display: flex;
-  justify-content: center;
-  gap: 12px;
-  margin-bottom: 20px;
-}
-.sport-pill {
-  cursor: pointer;
-  font-size: 24px;
-  opacity: .4;
-  transition: .15s;
-}
-.sport-pill.active {
-  opacity: 1;
-  transform: scale(1.1);
-}
+    .subtitle {
+      text-align: center;
+      font-size: 12px;
+      color: #9ca3af;
+      margin-bottom: 16px;
+    }
 
-/* KATEGORİ BAŞLIĞI */
-.collapsible {
-  padding: 12px;
-  background: #fff;
-  margin-top: 16px;
-  border-radius: 12px;
-  font-weight: 700;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  cursor: pointer;
-}
-.collapsible span.chevron {
-  font-size: 16px;
-  transform: rotate(0deg);
-  transition: transform 0.2s;
-}
-.collapsible.closed span.chevron {
-  transform: rotate(-90deg);
-}
+    /* Tarih pill’leri */
+    .date-row {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+    .date-pill {
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      border: 1px solid #1f2937;
+      background: #020617;
+      cursor: pointer;
+      color: #9ca3af;
+    }
+    .date-pill.active {
+      background: linear-gradient(135deg,#22c55e,#16a34a);
+      border-color: transparent;
+      color: #020617;
+      font-weight: 600;
+    }
 
-.content {
-  margin-top: 6px;
-}
-.content.closed {
-  display: none;
-}
+    /* Spor ikonları */
+    .sports-row {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+    .sport-btn {
+      width: 38px;
+      height: 38px;
+      border-radius: 999px;
+      border: 1px solid #1f2937;
+      background: #020617;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+    }
+    .sport-btn.active {
+      background: radial-gradient(circle at 30% 0,#22c55e,#15803d 65%,#052e16);
+      border-color: #4ade80;
+      box-shadow: 0 0 16px rgba(34,197,94,0.35);
+      transform: translateY(-1px);
+    }
 
-/* KARTLAR */
-.section {
-  background: #fff;
-  padding: 16px;
-  border-radius: 12px;
-  box-shadow: 0 2px 6px rgba(0,0,0,.06);
-}
-.stat-item {
-  padding: 10px 0;
-  border-bottom: 1px solid #ddd;
-}
-.stat-item:last-child {
-  border-bottom: none;
-}
-.teams {
-  font-weight: 600;
-  display: flex;
-  gap: 6px;
-}
-.detail {
-  color: #666;
-  font-size: 13px;
-  margin: 4px 0;
-}
-.highlight {
-  color: #16a34a;
-  font-weight: 700;
-  margin-bottom: 6px;
-}
-.btn {
-  background: #16a34a;
-  color: white;
-  padding: 8px;
-  border-radius: 8px;
-  width: 100%;
-  border: none;
-  cursor: pointer;
-}
+    /* İçerik kutusu */
+    .card {
+      background: radial-gradient(circle at top, #111827, #020617 55%);
+      border-radius: 18px;
+      padding: 14px 12px 10px;
+      border: 1px solid #1f2937;
+      box-shadow: 0 18px 45px rgba(0,0,0,0.65);
+      min-height: 120px;
+    }
 
-/* DURUM MESAJLARI */
-.status {
-  text-align: center;
-  font-size: 13px;
-  color: #666;
-  margin-top: 8px;
-}
-</style>
+    .status-line {
+      font-size: 12px;
+      color: #9ca3af;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .status-badge {
+      font-size: 11px;
+      padding: 4px 9px;
+      border-radius: 999px;
+      background: rgba(34,197,94,0.08);
+      color: #bbf7d0;
+      border: 1px solid rgba(34,197,94,0.4);
+      white-space: nowrap;
+    }
+
+    /* Maç listesi */
+    .matches {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 520px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .match {
+      padding: 8px 9px;
+      border-radius: 12px;
+      background: rgba(15,23,42,0.9);
+      border: 1px solid rgba(30,64,175,0.45);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 12px;
+    }
+
+    .match-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: center;
+    }
+    .teams {
+      font-weight: 600;
+      color: #e5e7eb;
+      font-size: 13px;
+    }
+    .time {
+      font-size: 11px;
+      color: #9ca3af;
+      white-space: nowrap;
+    }
+
+    .match-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      font-size: 11px;
+      color: #9ca3af;
+    }
+    .meta-pill {
+      padding: 3px 7px;
+      border-radius: 999px;
+      background: rgba(15,23,42,0.8);
+      border: 1px solid rgba(55,65,81,0.8);
+    }
+
+    /* Boş / yükleniyor durumları */
+    .empty {
+      font-size: 13px;
+      color: #9ca3af;
+      text-align: center;
+      padding: 14px 4px;
+    }
+
+    .loading {
+      font-size: 13px;
+      text-align: center;
+      color: #e5e7eb;
+      padding: 14px 4px;
+    }
+  </style>
 </head>
-
 <body>
+  <div class="container">
+    <h1>Günlük Maç İstatistikleri</h1>
+    <div class="subtitle">Futbol, basketbol ve tenis için istatistiksel özet.</div>
 
-<h1>Günlük Maç İstatistikleri</h1>
+    <!-- Tarih pill’leri -->
+    <div class="date-row" id="dateRow">
+      <button class="date-pill active" data-day="0">Bugün</button>
+      <button class="date-pill" data-day="-1">Dün</button>
+      <button class="date-pill" data-day="1">Yarın</button>
+    </div>
 
-<!-- TARİH -->
-<div class="date-filters" id="dateFilters"></div>
+    <!-- Spor ikonları -->
+    <div class="sports-row">
+      <button class="sport-btn active" data-sport="futbol" id="btnFutbol">⚽️</button>
+      <button class="sport-btn" data-sport="basketbol" id="btnBasketbol">🏀</button>
+      <button class="sport-btn" data-sport="tenis" id="btnTenis">🎾</button>
+    </div>
 
-<!-- SPOR -->
-<div class="sport-filters">
-  <span class="sport-pill active" data-sport="futbol">⚽️</span>
-  <span class="sport-pill" data-sport="basketbol">🏀</span>
-  <span class="sport-pill" data-sport="tenis">🎾</span>
-</div>
+    <!-- İçerik kartı -->
+    <div class="card">
+      <div class="status-line">
+        <span id="statusText">Bugün için futbol istatistikleri yükleniyor…</span>
+        <span class="status-badge" id="statusBadge">Bağlantı kuruluyor</span>
+      </div>
+      <div id="matchesContainer" class="matches">
+        <!-- JS ile doldurulacak -->
+      </div>
+    </div>
+  </div>
 
-<div id="status" class="status"></div>
-<div id="categories"></div>
+  <script>
+    const API_BASE = "https://sports-stats-api-fftx.onrender.com/api/stats";
 
-<script>
-/* ============================
-   TARİH PİLL'LERİNİ OLUŞTUR
-============================ */
-const dateFiltersEl = document.getElementById("dateFilters");
-const statusEl = document.getElementById("status");
-const categoriesEl = document.getElementById("categories");
+    let currentSport = "futbol";
+    let currentDayOffset = 0;
 
-function formatDateLabel(offset) {
-  const d = new Date();
-  d.setDate(d.getDate() + offset);
+    const statusTextEl = document.getElementById("statusText");
+    const statusBadgeEl = document.getElementById("statusBadge");
+    const matchesContainer = document.getElementById("matchesContainer");
 
-  if (offset === 0) return "Bugün";
-
-  const aylar = [
-    "Ocak","Şubat","Mart","Nisan","Mayıs","Haziran",
-    "Temmuz","Ağustos","Eylül","Ekim","Kasım","Aralık"
-  ];
-  const gun = d.getDate();
-  const ay = aylar[d.getMonth()];
-  return `${gun} ${ay}`;
-}
-
-function initDatePills() {
-  for (let offset = 0; offset <= 2; offset++) {
-    const pill = document.createElement("div");
-    pill.className = "date-pill" + (offset === 0 ? " active" : "");
-    pill.dataset.offset = offset;
-    pill.textContent = formatDateLabel(offset);
-    dateFiltersEl.appendChild(pill);
-  }
-}
-
-/* ============================
-   GLOBAL DURUM
-============================ */
-let currentSport = "futbol";  // futbol / basketbol / tenis
-let currentDayOffset = 0;     // 0 = bugün, 1 = yarın, 2 = öbür gün
-
-/* ============================
-   BACKEND'DEN VERİ ÇEK
-============================ */
-async function loadStats() {
-  statusEl.textContent = "Yükleniyor...";
-  categoriesEl.innerHTML = "";
-
-  try {
-    const url = `https://sports-stats-api-fftx.onrender.com/api/stats?sport=${encodeURIComponent(currentSport)}&day=${currentDayOffset}`;
-    const res = await fetch(url);
-    if (!res.ok) {
-      throw new Error("Sunucudan geçerli yanıt alınamadı");
+    // Yükleniyor mesajı
+    function showLoading() {
+      statusTextEl.textContent = "İstatistikler getiriliyor…";
+      statusBadgeEl.textContent = "Yükleniyor";
+      matchesContainer.innerHTML = '<div class="loading">Lütfen bekleyin, veriler hazırlanıyor…</div>';
     }
-    const data = await res.json();
 
-    // FUTBOL: backend { sport: 'futbol', matches: [...] } döndürüyor
-    const futbolMatches = Array.isArray(data.matches) ? data.matches : null;
+    // Boş mesaj
+    function showNoStatsMessage() {
+      statusTextEl.textContent = "Bu tarih ve spor için veri bulunamadı.";
+      statusBadgeEl.textContent = "Boş sonuç";
+      matchesContainer.innerHTML = '<div class="empty">Bu gün için gösterilecek istatistik yok.</div>';
+    }
 
-    if (data.sport === "futbol" && futbolMatches) {
-      const items = futbolMatches.map(f => {
-        const league = f.league?.name || "Lig";
-        const country = f.league?.country || "";
-        const home = f.teams?.home?.name || "Ev Sahibi";
-        const away = f.teams?.away?.name || "Deplasman";
+    // Maçları ekrana bas
+    function renderMatches(list) {
+      if (!Array.isArray(list) || list.length === 0) {
+        showNoStatsMessage();
+        return;
+      }
 
-        return {
-          flag: countryToFlag(country),
-          teams: `${home} vs ${away}`,
-          detail: `${league} mücadelesinde iki takım da önemli bir sınav verecek.`,
-          highlight: "Maçı İncele"
-        };
+      statusTextEl.textContent = `Toplam ${list.length} maç bulundu.`;
+      statusBadgeEl.textContent = "Veri yüklendi";
+
+      matchesContainer.innerHTML = "";
+      list.forEach((m) => {
+        // Olası alanlara göre takım isimlerini yakalamaya çalışalım
+        const home =
+          m.home ||
+          m.home_team ||
+          m.team1 ||
+          m.ev_home ||
+          m.EvSahibi ||
+          "";
+        const away =
+          m.away ||
+          m.away_team ||
+          m.team2 ||
+          m.deplasman ||
+          m.EvSahibiDegil ||
+          "";
+
+        const time =
+          m.time ||
+          m.match_time ||
+          m.start_time ||
+          m.baslamaSaati ||
+          "";
+
+        const stat1 =
+          m.market ||
+          m.stat ||
+          m.tip ||
+          m.play_type ||
+          "";
+        const stat2 =
+          m.line ||
+          m.oran ||
+          m.odds ||
+          m.total ||
+          "";
+
+        const div = document.createElement("div");
+        div.className = "match";
+        div.innerHTML = `
+          <div class="match-header">
+            <div class="teams">${home} <span style="opacity:0.65;">vs</span> ${away}</div>
+            <div class="time">${time}</div>
+          </div>
+          <div class="match-meta">
+            ${stat1 ? `<span class="meta-pill">${stat1}</span>` : ""}
+            ${stat2 ? `<span class="meta-pill">${stat2}</span>` : ""}
+          </div>
+        `;
+        matchesContainer.appendChild(div);
       });
-
-      const statsObj = {
-        "⚽️ Bugünün Maçları": items
-      };
-
-      renderCategories(statsObj);
-    }
-    // Basketbol / Tenis: stats objesi dönüyor
-    else if (data.stats && typeof data.stats === "object") {
-      renderCategories(data.stats);
-    } else {
-      categoriesEl.innerHTML = "";
-      statusEl.textContent = "Bu gün için gösterilecek istatistik yok.";
-      return;
     }
 
-    statusEl.textContent = "";
-  } catch (err) {
-    console.error("Yükleme hatası:", err);
-    statusEl.textContent = "Veriler yüklenirken bir hata oluştu.";
-  }
-}
+    // API çağrısı – JSON içindeki listeyi esnek biçimde buluyoruz
+    async function loadStats(sport, dayOffset) {
+      currentSport = sport;
+      currentDayOffset = Number(dayOffset || 0);
 
-/* ============================
-   KATEGORİLERİ RENDER ET
-============================ */
-function renderCategories(statsObj) {
-  categoriesEl.innerHTML = "";
+      const url = `${API_BASE}?sport=${encodeURIComponent(sport)}&day=${currentDayOffset}`;
 
-  const entries = Object.entries(statsObj);
+      showLoading();
 
-  if (!entries.length) {
-    statusEl.textContent = "Bu gün için gösterilecek istatistik yok.";
-    return;
-  }
+      try {
+        const res = await fetch(url);
+        if (!res.ok) {
+          console.error("API HTTP Hatası:", res.status, res.statusText);
+          showNoStatsMessage();
+          return;
+        }
 
-  entries.forEach(([category, items]) => {
-    if (!Array.isArray(items) || items.length === 0) return;
+        const json = await res.json();
 
-    const block = document.createElement("div");
+        // BURASI KRİTİK: API array yerine obje döndürüyorsa, diziyi içinden çekiyoruz
+        let matches;
+        if (Array.isArray(json)) {
+          matches = json;
+        } else if (Array.isArray(json.rows)) {
+          matches = json.rows;
+        } else if (Array.isArray(json.matches)) {
+          matches = json.matches;
+        } else if (Array.isArray(json.data)) {
+          matches = json.data;
+        } else {
+          matches = [];
+        }
 
-    block.innerHTML = `
-      <div class="collapsible">
-        <div>${category}</div>
-        <span class="chevron">⌄</span>
-      </div>
-      <div class="content">
-        <div class="section">
-          ${items.map(item => `
-            <div class="stat-item">
-              <div class="teams"><span>${item.flag || ""}</span> ${item.teams || ""}</div>
-              <div class="detail">${item.detail || ""}</div>
-              <div class="highlight">${item.highlight || ""}</div>
-              <button class="btn">Bahis Yap</button>
-            </div>
-          `).join("")}
-        </div>
-      </div>
-    `;
+        if (!matches || matches.length === 0) {
+          showNoStatsMessage();
+          return;
+        }
 
-    categoriesEl.appendChild(block);
-  });
+        renderMatches(matches);
+      } catch (err) {
+        console.error("API çağrısında hata:", err);
+        statusTextEl.textContent = "İstatistikler yüklenirken bir hata oluştu.";
+        statusBadgeEl.textContent = "Hata";
+        matchesContainer.innerHTML =
+          '<div class="empty">Şu anda veriler yüklenemiyor. Lütfen tekrar deneyin.</div>';
+      }
+    }
 
-  // Collapse olayları
-  document.querySelectorAll(".collapsible").forEach(c => {
-    const content = c.nextElementSibling;
-    const chevron = c.querySelector(".chevron");
-    c.onclick = () => {
-      content.classList.toggle("closed");
-      c.classList.toggle("closed");
-    };
-  });
-}
+    // Eventler: tarih pill’leri
+    document.getElementById("dateRow").addEventListener("click", (e) => {
+      const btn = e.target.closest(".date-pill");
+      if (!btn) return;
 
-/* ============================
-   ÜLKE ADINDAN BAYRAK EMOJİSİ
-============================ */
-function countryToFlag(country = "") {
-  const map = {
-    Turkey: "🇹🇷",
-    Türkiye: "🇹🇷",
-    England: "🏴",
-    "United Kingdom": "🏴",
-    Spain: "🇪🇸",
-    Germany: "🇩🇪",
-    Italy: "🇮🇹",
-    France: "🇫🇷",
-    Portugal: "🇵🇹",
-    Netherlands: "🇳🇱",
-    USA: "🇺🇸",
-    Brazil: "🇧🇷",
-    Argentina: "🇦🇷"
-  };
-  return map[country] || "🏳️";
-}
-
-/* ============================
-   EVENT BINDING
-============================ */
-function bindEvents() {
-  // Tarih tıklama
-  document.querySelectorAll(".date-pill").forEach(btn => {
-    btn.onclick = () => {
-      document.querySelectorAll(".date-pill").forEach(b => b.classList.remove("active"));
+      document
+        .querySelectorAll(".date-pill")
+        .forEach((p) => p.classList.remove("active"));
       btn.classList.add("active");
-      currentDayOffset = parseInt(btn.dataset.offset, 10) || 0;
-      loadStats();
-    };
-  });
 
-  // Spor tıklama
-  document.querySelectorAll(".sport-pill").forEach(btn => {
-    btn.onclick = () => {
-      document.querySelectorAll(".sport-pill").forEach(b => b.classList.remove("active"));
-      btn.classList.add("active");
-      currentSport = btn.dataset.sport;
-      loadStats();
-    };
-  });
-}
+      const day = btn.getAttribute("data-day");
+      loadStats(currentSport, day);
+    });
 
-/* ============================
-   SAYFA YÜKLENİNCE
-============================ */
-initDatePills();
-bindEvents();
-loadStats();
-</script>
+    // Eventler: spor ikonları
+    document.querySelectorAll(".sport-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        document
+          .querySelectorAll(".sport-btn")
+          .forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+
+        const sport = btn.getAttribute("data-sport");
+        loadStats(sport, currentDayOffset);
+      });
+    });
+
+    // Sayfa ilk yüklendiğinde: Bugün + Futbol
+    window.addEventListener("DOMContentLoaded", () => {
+      loadStats("futbol", 0);
+    });
+  </script>
 </body>
 </html>
